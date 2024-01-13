@@ -1,8 +1,9 @@
 from telebot import types
 
 from api_integration import bot, client, bot_token
+from utils import show_weather
 
-button_text = '3'
+button_text = '4'
 
 
 def start_handler(message):
@@ -16,7 +17,8 @@ def message_or_button_pressed(message):
     # Check if the message text is the same as the button text
     if message.text == button_text:
         # Respond that the button was pressed
-        bot.send_message(message.chat.id, "Вы нажали кнопку!")
+        # bot.send_message(message.chat.id, "Вы нажали кнопку!")
+        show_weather(message)
     else:
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
