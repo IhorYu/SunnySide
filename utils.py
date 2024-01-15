@@ -1,7 +1,12 @@
-from api_integration import bot, client, weather_api_key
-
-import requests
 from datetime import datetime
+
+import pytz
+import requests
+from apscheduler.schedulers.background import BackgroundScheduler
+from decouple import config
+
+from api_integration import bot, client, weather_api_key
+from database import create_connection
 
 
 def get_weather_forecast(api_key=weather_api_key, location="Steinau an der straße"):
@@ -58,18 +63,49 @@ current_date_time = datetime.now()
 weather_data = get_weather_forecast()
 # Generating the weather report
 weather_report = display_weather_info(weather_data, current_date_time)
-# print(weather_report)
+print(weather_report)
 
 
-def show_weather(message):
+def show_weather():
     completion = client.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4",
         messages=[
             {"role": "system",
              "content": ""},
-            {"role": "user", "content": ""}
+            {"role": "user", "content": f"{config('PROMPT_WEATHER')} {weather_report}"}
         ]
     )
 
     content = completion.choices[0].message.content
-    bot.send_message(message.chat.id, content)
+    return content
+
+
+def add_user_to_db(user_id):
+    database = "telegram_users.db"
+    conn = create_connection(database)
+    if conn:
+        sql = ''' INSERT INTO users(user_id) VALUES(?) '''
+        cur = conn.cursor()
+        cur.execute(sql, (user_id,))
+        conn.commit()
+        return cur.lastrowid
+
+
+def send_daily_message():
+    database = "telegram_users.db"
+    conn = create_connection(database)
+    content = show_weather()
+    if conn:
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM users")
+        rows = cur.fetchall()
+        for row in rows:
+            try:
+                bot.send_message(row[0], content)
+            except Exception as e:
+                print(f"Error sending message to user {row[0]}: {e}")
+
+
+scheduler = BackgroundScheduler()
+scheduler.configure(timezone=pytz.timezone('Europe/Berlin'))
+scheduler.add_job(send_daily_message, 'cron', hour=8, minute=0)

@@ -1,5 +1,9 @@
 from api_integration import bot
+from database import main as database_main
 from handlers import start_handler, message_or_button_pressed, handle_photo
+from utils import scheduler
+
+database_main()
 
 # Handling the '/start' command
 bot.message_handler(commands=['start'])(start_handler)
@@ -9,6 +13,8 @@ bot.message_handler(func=lambda message: True, content_types=['text'])(message_o
 
 # Handling photo messages
 bot.message_handler(content_types=['photo'])(handle_photo)
+
+scheduler.start()
 
 # Running the bot in a polling loop
 bot.polling()

@@ -1,12 +1,14 @@
+from decouple import config
 from telebot import types
 
 from api_integration import bot, client, bot_token
-from utils import show_weather
+from utils import show_weather, add_user_to_db
 
 button_text = '4'
 
 
 def start_handler(message):
+    add_user_to_db(message.chat.id)
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
     button = types.KeyboardButton(button_text)
     markup.add(button)
@@ -24,7 +26,7 @@ def message_or_button_pressed(message):
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system",
-                 "content": ""},
+                 "content": f"{config('PROMPT')}"},
                 {"role": "user", "content": f"{message.text}"}
             ]
         )
