@@ -9,6 +9,7 @@ from api_integration import bot, client, weather_api_key
 from database import create_connection
 
 
+# Function to get the weather forecast using an external API
 def get_weather_forecast(api_key=weather_api_key, location="Steinau an der stra√üe"):
     base_url = "http://api.weatherapi.com/v1/forecast.json"
     # Parameters for the API request
@@ -24,6 +25,7 @@ def get_weather_forecast(api_key=weather_api_key, location="Steinau an der stra√
     return response.json()
 
 
+# Function to display weather information
 def display_weather_info(weather_data, date_time):
     # Extracting the forecast date
     forecast_date = date_time.date()
@@ -66,6 +68,7 @@ weather_report = display_weather_info(weather_data, current_date_time)
 print(weather_report)
 
 
+# Function for showing weather, used in the job scheduler
 def show_weather():
     completion = client.chat.completions.create(
         model="gpt-4",
@@ -80,17 +83,7 @@ def show_weather():
     return content
 
 
-def add_user_to_db(user_id):
-    database = "telegram_users.db"
-    conn = create_connection(database)
-    if conn:
-        sql = ''' INSERT INTO users(user_id) VALUES(?) '''
-        cur = conn.cursor()
-        cur.execute(sql, (user_id,))
-        conn.commit()
-        return cur.lastrowid
-
-
+# Function to send daily messages to users
 def send_daily_message():
     database = "telegram_users.db"
     conn = create_connection(database)

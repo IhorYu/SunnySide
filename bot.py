@@ -3,6 +3,7 @@ from database import main as database_main
 from handlers import start_handler, message_or_button_pressed, handle_photo
 from utils import scheduler
 
+# Initialize and configure the database
 database_main()
 
 # Handling the '/start' command
@@ -14,6 +15,7 @@ bot.message_handler(func=lambda message: True, content_types=['text'])(message_o
 # Handling photo messages
 bot.message_handler(content_types=['photo'])(handle_photo)
 
+# Start the job scheduler
 scheduler.start()
 
 # Running the bot in a polling loop
